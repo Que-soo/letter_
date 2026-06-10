@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>For Bubby 💌</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --deep:    #0f0508;
+      --dark:    #1c0810;
+      --wine:    #4a0e1c;
+      --rose:    #c2556a;
+      --blush:   #f0c4c8;
+      --cream:   #fdf4f0;
+      --gold:    #d4a96a;
+      --goldlt:  #f0d9b0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--deep);
+      color: var(--cream);
+      font-family: 'Lato', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Canvas ── */
+    #canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── Page layout ── */
+    .page {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 1.5rem;
+    }
+
+    /* ── Envelope open animation ── */
+    #intro {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      cursor: pointer;
+      gap: 2rem;
+    }
+
+    .envelope-wrap {
+      position: relative;
+      width: 160px;
+      height: 110px;
+      margin: 0 auto;
+      filter: drop-shadow(0 0 30px rgba(194,85,106,0.5));
+      transition: transform 0.3s ease;
+    }
+    .envelope-wrap:hover { transform: scale(1.05); }
+
+    .envelope-wrap svg { width: 100%; height: 100%; }
+
+    .intro-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      font-weight: 400;
+      font-style: italic;
+      color: var(--blush);
+      line-height: 1.2;
+      letter-spacing: 0.02em;
+    }
+
+    .intro-sub {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      color: var(--rose);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .open-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: transparent;
+      border: 1px solid var(--rose);
+      color: var(--blush);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.75rem 2rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s, border-color 0.3s;
+      margin-top: 0.5rem;
+    }
+    .open-btn:hover {
+      background: var(--rose);
+      color: var(--cream);
+      border-color: var(--rose);
+    }
+
+    /* ── Letter section ── */
+    #letter {
+      display: none;
+      opacity: 0;
+      max-width: 680px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    #letter.visible {
+      display: block;
+    }
+    #letter.fade-in {
+      animation: fadeUp 1.2s ease forwards;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .letter-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(194,85,106,0.2);
+      border-radius: 20px;
+      padding: 3.5rem 3rem;
+      backdrop-filter: blur(6px);
+      box-shadow:
+        0 0 60px rgba(194,85,106,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .letter-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,169,106,0.4), transparent);
+    }
+
+    .wax-seal {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 32%, #b83050, #6b1020);
+      box-shadow: 0 0 24px rgba(184,48,80,0.45), 0 0 0 6px rgba(184,48,80,0.1);
+      position: relative;
+    }
+    .wax-seal::after {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 1px dashed rgba(194,85,106,0.3);
+    }
+
+    .letter-eyebrow {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.22em;
+      color: var(--gold);
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 0.6rem;
+    }
+
+    .letter-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 400;
+      font-style: italic;
+      color: var(--blush);
+      text-align: center;
+      line-height: 1.2;
+      margin-bottom: 2.5rem;
+    }
+
+    .ornament {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 0 auto 2.5rem;
+      max-width: 280px;
+    }
+    .ornament-line { flex: 1; height: 1px; background: rgba(194,85,106,0.25); }
+    .ornament-icon { color: var(--rose); font-size: 1rem; flex-shrink: 0; }
+
+    .letter-body {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      line-height: 2;
+      color: rgba(253,244,240,0.85);
+      font-weight: 300;
+    }
+    .letter-body p { margin-bottom: 1.5rem; }
+    .letter-body p:last-child { margin-bottom: 0; }
+
+    .em {
+      color: var(--blush);
+      font-style: italic;
+    }
+
+    .letter-sig {
+      margin-top: 3rem;
+      text-align: right;
+      font-family: 'Playfair Display', serif;
+    }
+    .sig-from {
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.4rem;
+    }
+    .sig-name {
+      font-size: 1.8rem;
+      font-style: italic;
+      color: var(--blush);
+    }
+
+    /* ── Floating hearts at bottom ── */
+    .hearts-row {
+      display: flex;
+      justify-content: center;
+      gap: 0.8rem;
+      margin-top: 2.5rem;
+    }
+    .hearts-row span {
+      font-size: 1.2rem;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .hearts-row span:nth-child(1) { animation-delay: 0s; }
+    .hearts-row span:nth-child(2) { animation-delay: 0.3s; }
+    .hearts-row span:nth-child(3) { animation-delay: 0.6s; }
+    .hearts-row span:nth-child(4) { animation-delay: 0.9s; }
+    .hearts-row span:nth-child(5) { animation-delay: 1.2s; }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50%       { transform: scale(1.3); opacity: 1; }
+    }
+
+    /* ── Back button ── */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: transparent;
+      border: 1px solid rgba(194,85,106,0.3);
+      color: var(--rose);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.6rem 1.5rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.25s;
+      margin-top: 2rem;
+    }
+    .back-btn:hover {
+      background: rgba(194,85,106,0.12);
+      border-color: var(--rose);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 540px) {
+      .letter-card { padding: 2rem 1.4rem; }
+      .letter-body { font-size: 1.05rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<!-- Intro screen -->
+<section id="intro" class="page" onclick="openLetter()">
+  <div class="envelope-wrap" aria-hidden="true">
+    <svg viewBox="0 0 160 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Envelope body -->
+      <rect x="4" y="28" width="152" height="78" rx="6" fill="#2d0a16" stroke="#c2556a" stroke-width="1"/>
+      <!-- Envelope flap (open) -->
+      <path d="M4 28 L80 74 L156 28" stroke="#c2556a" stroke-width="1" fill="none"/>
+      <!-- Left fold line -->
+      <line x1="4" y1="28" x2="4" y2="106" stroke="#c2556a" stroke-width="0.5" opacity="0.3"/>
+      <!-- Right fold line -->
+      <line x1="156" y1="28" x2="156" y2="106" stroke="#c2556a" stroke-width="0.5" opacity="0.3"/>
+      <!-- Bottom fold -->
+      <line x1="4" y1="106" x2="156" y2="106" stroke="#c2556a" stroke-width="0.5" opacity="0.3"/>
+      <!-- Heart on flap -->
+      <path d="M80 58 C80 58 66 46 66 38 C66 32 72 28 76 31 C78 32 80 35 80 35 C80 35 82 32 84 31 C88 28 94 32 94 38 C94 46 80 58 80 58Z" fill="#c2556a" opacity="0.9"/>
+    </svg>
+  </div>
+
+  <div>
+    <p class="intro-sub">A message from Sweetheart</p>
+    <h1 class="intro-title">Something special<br>is waiting for you</h1>
+  </div>
+
+  <button class="open-btn" onclick="openLetter(); event.stopPropagation();">
+    Open your letter ✦
+  </button>
+</section>
+
+<!-- Letter screen -->
+<section id="letter" class="page">
+  <div class="letter-card" style="max-width:680px;width:100%;">
+    <div class="wax-seal">🌹</div>
+
+    <p class="letter-eyebrow">Written for you</p>
+    <h2 class="letter-heading">My Dearest Bubby</h2>
+
+    <div class="ornament">
+      <span class="ornament-line"></span>
+      <span class="ornament-icon">✦</span>
+      <span class="ornament-line"></span>
+    </div>
+
+    <div class="letter-body">
+      <p>
+        There are moments in life that quietly rearrange everything and meeting you was one of them.
+        In the short amount of time that we knew each other, you had already become
+        <span class="em">my favorite part of every single day.</span>
+      </p>
+      <p>
+        I love that we don't always see eye to eye, yet we keep choosing to understand each other.
+        I love how our conversations, whether they're playful or argumentative, have become some
+        of the most memorable parts of my day. And I love that even through our differences,
+        I can be myself with you.
+      </p>
+      <p>
+        You are not just someone I love, you are <span class="em">someone I choose, over and over again,</span>
+        in every quiet morning and every long night. In every moment that asks me where I want to be.
+      </p>
+      <p>
+        The answer is always the same. <span class="em">It's always you.</span>
+      </p>
+      <p>
+        So here, in these simple words, is everything I've been meaning to say:
+        I am so endlessly, deeply, irreversibly in love with you, Bubby.
+        And I wouldn't have it any other way.
+      </p>
+      <p>
+        Always and without question will always be yours.
+      </p>
+    </div>
+
+    <div class="letter-sig">
+      <p class="sig-from">with all my love,</p>
+      <p class="sig-name">Sweetheart 🌹</p>
+    </div>
+
+    <div class="hearts-row">
+      <span>🤍</span><span>❤️</span><span>🌸</span><span>❤️</span><span>🤍</span>
+    </div>
+  </div>
+
+  <button class="back-btn" onclick="closeLetter()">← go back</button>
+</section>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, stars = [], petals = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Stars
+  for (let i = 0; i < 120; i++) {
+    stars.push({
+      x: Math.random() * 1,
+      y: Math.random() * 1,
+      r: Math.random() * 1.4 + 0.3,
+      speed: Math.random() * 0.003 + 0.001,
+      phase: Math.random() * Math.PI * 2
+    });
+  }
+
+  // Petals (emoji drawn as text)
+  const petalEmoji = ['🌸','🌹','✿','❀','🌺'];
+  for (let i = 0; i < 18; i++) {
+    petals.push({
+      x: Math.random(),
+      y: Math.random(),
+      size: Math.random() * 10 + 10,
+      speed: Math.random() * 0.0003 + 0.0001,
+      drift: (Math.random() - 0.5) * 0.0002,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.03,
+      emoji: petalEmoji[Math.floor(Math.random() * petalEmoji.length)],
+      opacity: Math.random() * 0.5 + 0.25
+    });
+  }
+
+  let t = 0;
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    t += 0.01;
+
+    // Stars
+    stars.forEach(s => {
+      const alpha = 0.15 + 0.65 * (0.5 + 0.5 * Math.sin(t * s.speed * 300 + s.phase));
+      ctx.beginPath();
+      ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(240,196,200,${alpha})`;
+      ctx.fill();
+    });
+
+    // Falling petals
+    petals.forEach(p => {
+      p.y += p.speed;
+      p.x += p.drift;
+      p.rot += p.rotSpeed;
+      if (p.y > 1.05) { p.y = -0.05; p.x = Math.random(); }
+
+      ctx.save();
+      ctx.globalAlpha = p.opacity;
+      ctx.font = `${p.size}px serif`;
+      ctx.translate(p.x * W, p.y * H);
+      ctx.rotate(p.rot);
+      ctx.fillText(p.emoji, -p.size / 2, p.size / 2);
+      ctx.restore();
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  /* ────────────────────────────────
+     Section transitions
+  ──────────────────────────────── */
+  function openLetter() {
+    document.getElementById('intro').style.display = 'none';
+    const letter = document.getElementById('letter');
+    letter.classList.add('visible');
+    requestAnimationFrame(() => letter.classList.add('fade-in'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function closeLetter() {
+    const letter = document.getElementById('letter');
+    letter.classList.remove('visible', 'fade-in');
+    letter.style.display = 'none';
+    document.getElementById('intro').style.display = 'flex';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
