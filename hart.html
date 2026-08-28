@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Love Heart For Her</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: radial-gradient(ellipse at center, #2b0a14 0%, #0a0206 65%, #000000 100%);
+    height: 100%;
+    width: 100%;
+  }
+  canvas { display: block; touch-action: none; }
+  #label {
+    position: absolute;
+    top: 6%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ffd9e2;
+    font-family: 'Segoe Script', 'Brush Script MT', cursive;
+    font-size: 28px;
+    letter-spacing: 1px;
+    text-shadow: 0 0 12px rgba(255,120,160,0.8);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 2s ease;
+  }
+  #hint {
+    position: absolute;
+    bottom: 4%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255,255,255,0.35);
+    font-family: sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="label", align="center">For my one and only bubby😘</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function () {
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 55);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  document.body.appendChild(renderer.domElement);
+
+  // ---------- Orbit controls: full 360 degree view ----------
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.06;
+  controls.minDistance = 20;
+  controls.maxDistance = 120;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.6;
+  controls.enablePan = false;
+
+  // ---------- Starfield background ----------
+  (function makeStars() {
+    const starCount = 1200;
+    const positions = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i++) {
+      const r = 200 + Math.random() * 400;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = r * Math.cos(phi);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const mat = new THREE.PointsMaterial({ color: 0xffe6ee, size: 0.7, transparent: true, opacity: 0.6 });
+    scene.add(new THREE.Points(geo, mat));
+  })();
+
+  // ---------- Heart parametric curve (outline reference) ----------
+  function heartPoint(t, scale) {
+    const x = 16 * Math.pow(Math.sin(t), 3);
+    const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+    return new THREE.Vector3(x * scale, y * scale, 0);
+  }
+
+  // ---------- Particle heart cloud ----------
+  const count = 1800;
+  const positions = new Float32Array(count * 3);
+  const basePositions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const scales = new Float32Array(count);
+  const speeds = new Float32Array(count);
+  const randoms = new Float32Array(count);
+  const randoms1 = new Float32Array(count);
+
+  const colorChoices = [0xff6f91, 0xff2d55, 0xffb6c1, 0xffffff, 0xff85a2, 0xd6336c];
+  const scale = 1.15;
+
+  for (let i = 0; i < count; i++) {
+    const i3 = i * 3;
+    const t = Math.random() * Math.PI * 2;
+    const p = heartPoint(t, scale);
+
+    // scatter particles around the curve in a soft 3D shell
+    const phi = Math.random() * Math.PI * 2;
+    const spread = Math.pow(Math.random(), 2) * 3.2;
+    const depth = (Math.random() - 0.5) * 6;
+
+    const x = p.x + Math.cos(phi) * spread;
+    const y = p.y + Math.sin(phi) * spread;
+    const z = depth;
+
+    positions[i3] = x;
+    positions[i3 + 1] = y;
+    positions[i3 + 2] = z;
+
+    basePositions[i3] = x;
+    basePositions[i3 + 1] = y;
+    basePositions[i3 + 2] = z;
+
+    randoms[i] = Math.random();
+    randoms1[i] = Math.random();
+    scales[i] = Math.random() * 0.35 + 0.08;
+    speeds[i] = Math.random() * 0.5 + 0.2;
+
+    const colorIndex = Math.floor(Math.random() * colorChoices.length);
+    const color = new THREE.Color(colorChoices[colorIndex]);
+    colors[i3] = color.r;
+    colors[i3 + 1] = color.g;
+    colors[i3 + 2] = color.b;
+  }
+
+  const particleGeo = new THREE.BufferGeometry();
+  particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  particleGeo.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
+
+  const particleMat = new THREE.PointsMaterial({
+    size: 0.55,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.9,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    sizeAttenuation: true
+  });
+
+  const particleHeart = new THREE.Points(particleGeo, particleMat);
+  scene.add(particleHeart);
+
+  // ---------- Small solid heart mesh (continuously spinning) ----------
+  function makeHeartShape() {
+    const shape = new THREE.Shape();
+    const x = 0, y = 0;
+    shape.moveTo(x, y);
+    shape.bezierCurveTo(x, y - 1.2, x - 3.2, y - 1.2, x - 3.2, y + 1.4);
+    shape.bezierCurveTo(x - 3.2, y + 3.6, x - 1.4, y + 5.2, x, y + 6.6);
+    shape.bezierCurveTo(x + 1.4, y + 5.2, x + 3.2, y + 3.6, x + 3.2, y + 1.4);
+    shape.bezierCurveTo(x + 3.2, y - 1.2, x, y - 1.2, x, y);
+    return shape;
+  }
+
+  const heartShape = makeHeartShape();
+  // Fewer segments = fewer, larger flat facets (the chunky low-poly gem look)
+  const extrudeSettings = { depth: 2.0, bevelEnabled: true, bevelThickness: 0.5, bevelSize: 0.6, bevelSegments: 3, curveSegments: 5 };
+  const heartGeo = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+  heartGeo.center();
+  heartGeo.computeVertexNormals();
+
+  // flatShading renders each triangle as one flat plane, giving the
+  // distinct light/dark faceted panels seen on a cut gemstone
+  const heartMat = new THREE.MeshStandardMaterial({
+    color: 0xff6fa3,
+    flatShading: true,
+    roughness: 0.35, 
+    metalness: 0.05,
+    emissive: 0x7a0030,
+    emissiveIntensity: 0.12
+  });
+
+  const smallHeart = new THREE.Mesh(heartGeo, heartMat);
+  smallHeart.rotation.x = Math.PI; // point downward like the curve orientation
+  smallHeart.scale.set(1.0, 1.0, 1.0);
+  scene.add(smallHeart);
+
+  // subtle glow behind the small heart
+  const glowGeo = new THREE.SphereGeometry(6, 25, 25);
+  const glowMat = new THREE.MeshBasicMaterial({ color: 0xff6fa3, transparent: true, opacity: 0.08 });
+  const glow = new THREE.Mesh(glowGeo, glowMat);
+  scene.add(glow);
+
+  // ---------- Lighting ----------
+  scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+  const key = new THREE.PointLight(0xffb6c1, 1.4, 100);
+  key.position.set(15, 15, 25);
+  scene.add(key);
+  const rim = new THREE.PointLight(0xff2d55, 1.0, 100);
+  rim.position.set(-20, -10, -20);
+  scene.add(rim);
+  const fill = new THREE.PointLight(0xffffff, 0.8, 100);
+  fill.position.set(0, -15, 15);
+  scene.add(fill);
+  const facetLight = new THREE.DirectionalLight(0xffffff, 1.1);
+  facetLight.position.set(8, 12, 18);
+  scene.add(facetLight);
+
+  // ---------- Generated environment map (gives the glass heart something to refract/reflect) ----------
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+  pmremGenerator.compileEquirectangularShader();
+
+  const envScene = new THREE.Scene();
+  const envGeo = new THREE.SphereGeometry(30, 32, 32);
+  const envMat = new THREE.MeshBasicMaterial({ side: THREE.BackSide, vertexColors: true });
+  const envColorPos = envGeo.attributes.position;
+  const envColors = new Float32Array(envColorPos.count * 3);
+  for (let i = 0; i < envColorPos.count; i++) {
+    const y = envColorPos.getY(i);
+    const t = (y + 30) / 60;
+    const top = new THREE.Color(0xffdce6);
+    const bottom = new THREE.Color(0x33000c);
+    const c = top.clone().lerp(bottom, 1 - t);
+    envColors[i * 3] = c.r;
+    envColors[i * 3 + 1] = c.g;
+    envColors[i * 3 + 2] = c.b;
+  }
+  envGeo.setAttribute('color', new THREE.BufferAttribute(envColors, 3));
+  envScene.add(new THREE.Mesh(envGeo, envMat));
+  const envLight1 = new THREE.PointLight(0xffffff, 3, 50);
+  envLight1.position.set(10, 10, 10);
+  envScene.add(envLight1);
+
+  const envRenderTarget = pmremGenerator.fromScene(envScene, 0.04);
+  scene.environment = envRenderTarget.texture;
+  pmremGenerator.dispose();
+
+  // ---------- Sparkle / twinkle overlay near the heart ----------
+  const sparkleCount = 300;
+  const sparklePos = new Float32Array(sparkleCount * 3);
+  for (let i = 0; i < sparkleCount; i++) {
+    const t = Math.random() * Math.PI * 2;
+    const p = heartPoint(t, scale);
+    sparklePos[i * 3] = p.x + (Math.random() - 0.5) * 4;
+    sparklePos[i * 3 + 1] = p.y + (Math.random() - 0.5) * 4;
+    sparklePos[i * 3 + 2] = (Math.random() - 0.5) * 8;
+  }
+  const sparkleGeo = new THREE.BufferGeometry();
+  sparkleGeo.setAttribute('position', new THREE.BufferAttribute(sparklePos, 3));
+  const sparkleMat = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.35,
+    transparent: true,
+    opacity: 0.8,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  const sparkles = new THREE.Points(sparkleGeo, sparkleMat);
+  scene.add(sparkles);
+
+  // ---------- Fade in label ----------
+  setTimeout(() => { document.getElementById('label').style.opacity = 1; }, 400);
+
+  // ---------- Animation loop ----------
+  const clock = new THREE.Clock();
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const elapsed = clock.getElapsedTime();
+
+    // gentle pulsing shimmer for the particle heart
+    const posAttr = particleGeo.attributes.position;
+    for (let i = 0; i < count; i++) {
+      const i3 = i * 3;
+      const pulse = Math.sin(elapsed * speeds[i] + randoms[i] * 10) * 0.15;
+      posAttr.array[i3] = basePositions[i3] * (1 + pulse * 0.01) + Math.sin(elapsed * 0.5 + randoms1[i] * 6) * 0.05;
+      posAttr.array[i3 + 1] = basePositions[i3 + 1] * (1 + pulse * 0.01) + Math.cos(elapsed * 0.5 + randoms1[i] * 6) * 0.05;
+      posAttr.array[i3 + 2] = basePositions[i3 + 2] + Math.sin(elapsed * speeds[i] + randoms[i] * 6) * 0.3;
+    }
+    posAttr.needsUpdate = true;
+
+    // whole particle heart slow breathing scale
+    const breathe = 1 + Math.sin(elapsed * 1.2) * 0.02;
+    particleHeart.scale.set(breathe, breathe, breathe);
+
+    // small heart: constant spin (always rotating regardless of camera drag)
+    smallHeart.rotation.y = elapsed * 1.6;
+    const beat = 1.0 + Math.sin(elapsed * 3) * 0.05;
+    smallHeart.scale.set(beat, beat, beat);
+    glow.scale.set(beat, beat, beat);
+
+    // twinkle sparkle opacity
+    sparkleMat.opacity = 0.5 + Math.sin(elapsed * 4) * 0.3;
+
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // ---------- Resize ----------
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+</script>
+</body>
+</html>
